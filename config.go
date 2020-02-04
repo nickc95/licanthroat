@@ -6,7 +6,7 @@ import (
 )
 
 type config struct {
-	BotToken string `env:"Token" envDefault:"NjczNzI3MTYxNzUyMDkyNjcz.XjmywQ.BD7j7r6gw4Jfomc4lmQgOfHHJlY"`
+	BotToken string `env:"Token" envDefault:""`
 }
 
 var envConfig *config
