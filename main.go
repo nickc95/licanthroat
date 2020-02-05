@@ -40,6 +40,8 @@ func main() {
 // sent when client completes initial handshake with gateway for a new session.
 func ready(s *discordgo.Session, event *discordgo.Ready) {
 	fmt.Println("Ready")
+
+	// TODO: leave all guilds bot is a part of (state reset)
 }
 
 // sent when a message is created, m is a message struct
@@ -49,7 +51,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	// TODO: Refactor out command handlers
 	if strings.HasPrefix(m.Content, "!help") {
+		// TODO: check that channel message came from is an 'active game channel'
 		channel, err := s.State.Channel(m.ChannelID)
 		if err != nil {
 			fmt.Println("couldn't find corresponding channel")
@@ -72,6 +76,8 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	if event.Guild.Unavailable {
 		return
 	}
+
+	// TODO: Create a new channel in guild specific for game
 
 	// for _, channel := range event.Guild.Channels {
 	// 	if channel.ID == event.Guild.ID {
