@@ -9,8 +9,12 @@ import (
 	"syscall"
 )
 
+// global gameChannels storage
+var activeChannels *gameChannels
+
 func init() {
 	configInit()
+	activeChannels = initGameChannels()
 }
 
 func main() {
@@ -39,9 +43,6 @@ func main() {
 
 // sent when client completes initial handshake with gateway for a new session.
 func ready(s *discordgo.Session, event *discordgo.Ready) {
-	fmt.Println("Ready")
-
-	// TODO: leave all guilds bot is a part of (state reset)
 }
 
 // sent when a message is created, m is a message struct
@@ -51,22 +52,31 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	channel, err := s.State.Channel(m.ChannelID)
+	if err != nil {
+		fmt.Println("couldn't find corresponding channel")
+		return
+	}
+
 	// TODO: Refactor out command handlers
-	if strings.HasPrefix(m.Content, "!help") {
-		// TODO: check that channel message came from is an 'active game channel'
-		channel, err := s.State.Channel(m.ChannelID)
+	if strings.HasPrefix(m.Content, "!commands") {
+		_, err = s.ChannelMessageSend(channel.ID, commandsMessage)
 		if err != nil {
-			fmt.Println("couldn't find corresponding channel")
+			fmt.Println(err)
 			return
 		}
 
-		// guild, err = s.State.Guild(channel.GuildID)
-		// if err != nil {
-		// 	fmt.Println("couldn't find corresponding guild")
-		// 	return
-		// }
+		return
+	}
 
-		_, _ = s.ChannelMessageSend(channel.ID, "i'm sending a message corresponding to the message !help")
+	// TODO: check that message came from an 'active game channel'
+	if activeChannels.isChannelActive(channel.ID) != true {
+		_, err := s.ChannelMessageSend(channel.ID, nonActiveChannelMessage)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
 		return
 	}
 }
@@ -77,12 +87,11 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		return
 	}
 
-	// TODO: Create a new channel in guild specific for game
-
-	// for _, channel := range event.Guild.Channels {
-	// 	if channel.ID == event.Guild.ID {
-	// 		_, _ = s.ChannelMessageSend(channel.ID, "licanthroat is ready! Type nothing because nothing is supported yet.")
-	// 		return
-	// 	}
-	// }
+	for _, channel := range event.Guild.Channels {
+		_, err := s.ChannelMessageSend(channel.ID, "licanthroat is ready! Type !commands to see a list of available commands.")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
 }
