@@ -69,9 +69,50 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	// TODO: check that message came from an 'active game channel'
-	if activeChannels.isChannelActive(channel.ID) != true {
-		_, err := s.ChannelMessageSend(channel.ID, nonActiveChannelMessage)
+	if strings.HasPrefix(m.Content, "!init") {
+		if activeChannels.isActive(channel.ID) == true {
+			_, err = s.ChannelMessageSend(channel.ID, gameAlreadyInSessionMessage)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			return
+		}
+
+		err = activeChannels.add(channel.ID)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		_, err = s.ChannelMessageSend(channel.ID, channelInitMessage)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		return
+	}
+
+	if strings.HasPrefix(m.Content, "!reset") {
+		if activeChannels.isActive(channel.ID) == true {
+			err = activeChannels.remove(channel.ID)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			_, err = s.ChannelMessageSend(channel.ID, channelResetMessage)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			return
+		}
+
+		_, err = s.ChannelMessageSend(channel.ID, nonActiveChannelMessage)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -87,11 +128,11 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		return
 	}
 
-	for _, channel := range event.Guild.Channels {
-		_, err := s.ChannelMessageSend(channel.ID, "licanthroat is ready! Type !commands to see a list of available commands.")
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
+	// for _, channel := range event.Guild.Channels {
+	// 	_, err := s.ChannelMessageSend(channel.ID, "licanthroat is ready! Type !commands to see a list of available commands.")
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 		return
+	// 	}
+	// }
 }
