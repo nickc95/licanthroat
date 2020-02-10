@@ -5,7 +5,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 )
 
@@ -58,68 +57,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	// TODO: Refactor out command handlers
-	if strings.HasPrefix(m.Content, "!commands") {
-		_, err = s.ChannelMessageSend(channel.ID, commandsMessage)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		return
-	}
-
-	if strings.HasPrefix(m.Content, "!init") {
-		if activeChannels.isActive(channel.ID) == true {
-			_, err = s.ChannelMessageSend(channel.ID, gameAlreadyInSessionMessage)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			return
-		}
-
-		err = activeChannels.add(channel.ID)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		_, err = s.ChannelMessageSend(channel.ID, channelInitMessage)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		return
-	}
-
-	if strings.HasPrefix(m.Content, "!reset") {
-		if activeChannels.isActive(channel.ID) == true {
-			err = activeChannels.remove(channel.ID)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			_, err = s.ChannelMessageSend(channel.ID, channelResetMessage)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			return
-		}
-
-		_, err = s.ChannelMessageSend(channel.ID, nonActiveChannelMessage)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		return
-	}
+	handleCommands(s, m.Content, channel.ID)
 }
 
 // sent when a new guild is joined
