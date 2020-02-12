@@ -6,7 +6,7 @@ import (
 
 // TODO: Store all active game channels locally
 type gameChannels struct {
-	channels []gameChannel
+	channels map[string]gameChannel
 }
 
 type gameChannel struct {
@@ -15,35 +15,34 @@ type gameChannel struct {
 }
 
 func initGameChannels() *gameChannels {
-	return &gameChannels{}
+	channels := make(map[string]gameChannel)
+	return &gameChannels{
+		channels: channels,
+	}
 }
 
 func (gameChannels *gameChannels) isActive(channelID string) bool {
-	for _, channel := range gameChannels.channels {
-		if channel.channelID == channelID {
-			return true
-		}
+	_, ok := gameChannels.channels[channelID]
+	if ok {
+		return true
 	}
 
 	return false
 }
 
 func (gameChannels *gameChannels) add(channelID string) error {
-	// TODO: no duplicate channels
 	newGameChannel := gameChannel{
 		channelID: channelID,
 	}
-	gameChannels.channels = append(gameChannels.channels, newGameChannel)
+	gameChannels.channels[channelID] = newGameChannel
 	return nil
 }
 
 func (gameChannels *gameChannels) remove(channelID string) error {
-	for i, channel := range gameChannels.channels {
-		if channel.channelID == channelID {
-			gameChannels.channels[i] = gameChannels.channels[len(gameChannels.channels)-1]
-			gameChannels.channels = gameChannels.channels[:len(gameChannels.channels)-1]
-			return nil
-		}
+	_, ok := gameChannels.channels[channelID]
+	if ok {
+		delete(gameChannels.channels, channelID)
+		return nil
 	}
 
 	return errors.New("channel corresponding to given argument was not found")
