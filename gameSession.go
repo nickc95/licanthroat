@@ -1,12 +1,12 @@
 package main
 
-// TODO: store game session data locally
 type gameSession struct {
+	players     map[string]player
+	isNightTime bool
 }
 
 func newGameSession() *gameSession {
-	gameSession := gameSession{
-	}
+	gameSession := gameSession{}
 
 	return &gameSession
 }
