@@ -15,9 +15,8 @@ type gameChannel struct {
 }
 
 func initGameChannels() *gameChannels {
-	channels := make(map[string]gameChannel)
 	return &gameChannels{
-		channels: channels,
+		channels: make(map[string]gameChannel),
 	}
 }
 
