@@ -57,7 +57,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	handleCommands(s, m.Content, channel.ID)
+	guild, err := s.State.Guild(channel.GuildID)
+	if err != nil {
+		fmt.Println("couldn't find corresponding guild")
+		return
+	}
+
+	handleCommands(s, guild, channel, m.Content)
 }
 
 // sent when a new guild is joined

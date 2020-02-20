@@ -6,19 +6,19 @@ import (
 	"strings"
 )
 
-func handleCommands(session *discordgo.Session, messageContent string, channelID string) {
+func handleCommands(session *discordgo.Session, guild *discordgo.Guild, channel *discordgo.Channel, messageContent string) {
 	if strings.HasPrefix(messageContent, "!commands") {
-		helpCommand(session, channelID)
+		helpCommand(session, channel.ID)
 		return
 	}
 
 	if strings.HasPrefix(messageContent, "!init") {
-		initCommand(session, channelID)
+		initCommand(session, channel.ID, guild.Members)
 		return
 	}
 
 	if strings.HasPrefix(messageContent, "!reset") {
-		resetCommand(session, channelID)
+		resetCommand(session, channel.ID)
 		return
 	}
 }
@@ -33,7 +33,7 @@ func helpCommand(session *discordgo.Session, channelID string) {
 	return
 }
 
-func initCommand(session *discordgo.Session, channelID string) {
+func initCommand(session *discordgo.Session, channelID string, members []*discordgo.Member) {
 	if activeChannels.isActive(channelID) == true {
 		_, err := session.ChannelMessageSend(channelID, gameAlreadyInSessionMessage)
 		if err != nil {
@@ -44,7 +44,15 @@ func initCommand(session *discordgo.Session, channelID string) {
 		return
 	}
 
-	err := activeChannels.add(channelID)
+	userIDList := []string{}
+	for _, v := range members {
+		// don't add the bot itself
+		if v.User.ID != session.State.User.ID {
+			userIDList = append(userIDList, v.User.ID)
+		}
+	}
+
+	err := activeChannels.newChannel(channelID, userIDList)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -61,7 +69,7 @@ func initCommand(session *discordgo.Session, channelID string) {
 
 func resetCommand(session *discordgo.Session, channelID string) {
 	if activeChannels.isActive(channelID) == true {
-		err := activeChannels.remove(channelID)
+		err := activeChannels.removeChannel(channelID)
 		if err != nil {
 			fmt.Println(err)
 			return

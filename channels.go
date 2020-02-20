@@ -29,15 +29,21 @@ func (gameChannels *gameChannels) isActive(channelID string) bool {
 	return false
 }
 
-func (gameChannels *gameChannels) add(channelID string) error {
+func (gameChannels *gameChannels) newChannel(channelID string, userIDs []string) error {
+	newGameSession, err := newGameSession(userIDs)
+	if err != nil {
+		return err
+	}
+
 	newGameChannel := gameChannel{
 		channelID: channelID,
+		session: newGameSession,
 	}
 	gameChannels.channels[channelID] = newGameChannel
 	return nil
 }
 
-func (gameChannels *gameChannels) remove(channelID string) error {
+func (gameChannels *gameChannels) removeChannel(channelID string) error {
 	_, ok := gameChannels.channels[channelID]
 	if ok {
 		delete(gameChannels.channels, channelID)
