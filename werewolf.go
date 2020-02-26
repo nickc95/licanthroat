@@ -4,9 +4,9 @@ type werewolf struct {
 	*player
 }
 
-func newWerewolf() *werewolf {
+func newWerewolf(userChannelID string) *werewolf {
 	newWerewolf := &werewolf{
-		player: newPlayer(),
+		player: newPlayer(userChannelID),
 	}
 
 	return newWerewolf

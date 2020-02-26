@@ -4,9 +4,9 @@ type villager struct {
 	*player
 }
 
-func newVillager() *villager {
+func newVillager(userChannelID string) *villager {
 	newVillager := &villager{
-		player: newPlayer(),
+		player: newPlayer(userChannelID),
 	}
 
 	return newVillager

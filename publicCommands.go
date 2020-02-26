@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func handleCommands(session *discordgo.Session, guild *discordgo.Guild, channel *discordgo.Channel, messageContent string) {
+func handlePublicCommands(session *discordgo.Session, guild *discordgo.Guild, channel *discordgo.Channel, messageContent string) {
 	if strings.HasPrefix(messageContent, "!commands") {
 		helpCommand(session, channel.ID)
 		return
@@ -19,6 +19,11 @@ func handleCommands(session *discordgo.Session, guild *discordgo.Guild, channel 
 
 	if strings.HasPrefix(messageContent, "!reset") {
 		resetCommand(session, channel.ID)
+		return
+	}
+
+	if strings.HasPrefix(messageContent, "!status") {
+		statusCommand(session, channel.ID)
 		return
 	}
 }
@@ -44,18 +49,36 @@ func initCommand(session *discordgo.Session, channelID string, members []*discor
 		return
 	}
 
-	userIDList := []string{}
+	// userInfoMap is maps userIDs (identify user) to userChannelIDs (identity their DM channel)
+	userInfoMap := make(map[string]string)
+	// userIDList := []string{}
 	for _, v := range members {
 		// don't add the bot itself
 		if v.User.ID != session.State.User.ID {
-			userIDList = append(userIDList, v.User.ID)
+			// userIDList = append(userIDList, v.User.ID)
+			userChannel, err := session.UserChannelCreate(v.User.ID)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			userInfoMap[v.User.ID] = userChannel.ID
 		}
 	}
 
-	err := activeChannels.newChannel(channelID, userIDList)
+	err := activeChannels.newChannel(channelID, userInfoMap)
 	if err != nil {
 		fmt.Println(err)
 		return
+	}
+
+	message := privateInitMessage + "channelID."
+	for _, userChannelID := range userInfoMap {
+		_, err = session.ChannelMessageSend(userChannelID, message)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	}
 
 	_, err = session.ChannelMessageSend(channelID, channelInitMessage)
@@ -91,4 +114,40 @@ func resetCommand(session *discordgo.Session, channelID string) {
 	}
 
 	return
+}
+
+func statusCommand(session *discordgo.Session, channelID string) {
+	if activeChannels.isActive(channelID) == false {
+		_, err := session.ChannelMessageSend(channelID, nonActiveChannelMessage)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		return
+	}
+
+	gameSession, err := activeChannels.getGameSession(channelID)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	isGameOver, winner := gameSession.isGameOver()
+	if isGameOver {
+		message := gameOverMessage + winner + "."
+		_, err = session.ChannelMessageSend(channelID, message)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		return
+	}
+
+	_, err = session.ChannelMessageSend(channelID, gameNotOverMessage)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }

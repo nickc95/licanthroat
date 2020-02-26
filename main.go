@@ -63,7 +63,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	handleCommands(s, guild, channel, m.Content)
+	handlePublicCommands(s, guild, channel, m.Content)
 }
 
 // sent when a new guild is joined
