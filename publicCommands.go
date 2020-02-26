@@ -70,7 +70,7 @@ func initCommand(session *discordgo.Session, channelID string, members []*discor
 		return
 	}
 
-	message := privateInitMessage + "channelID."
+	message := privateInitMessage + channelID
 	for _, userChannelID := range userInfoMap {
 		_, err = session.ChannelMessageSend(userChannelID, message)
 		if err != nil {
