@@ -49,13 +49,11 @@ func initCommand(session *discordgo.Session, channelID string, members []*discor
 		return
 	}
 
-	// userInfoMap is maps userIDs (identify user) to userChannelIDs (identity their DM channel)
+	// userInfoMap maps userIDs (identify user) to userChannelIDs (identify their DM channel)
 	userInfoMap := make(map[string]string)
-	// userIDList := []string{}
 	for _, v := range members {
 		// don't add the bot itself
 		if v.User.ID != session.State.User.ID {
-			// userIDList = append(userIDList, v.User.ID)
 			userChannel, err := session.UserChannelCreate(v.User.ID)
 			if err != nil {
 				fmt.Println(err)
