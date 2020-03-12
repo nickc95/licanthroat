@@ -96,3 +96,9 @@ func (gameSession *gameSession) isGameOver() (isGameOver bool, winner string) {
 
 	return false, ""
 }
+
+// toggle isnighttime property and return bool isNightTime?
+func (gameSession *gameSession) toggleAndCheckIsNightTime() bool {
+	gameSession.isNightTime = !gameSession.isNightTime
+	return gameSession.isNightTime
+}

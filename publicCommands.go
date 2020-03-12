@@ -26,6 +26,11 @@ func handlePublicCommands(session *discordgo.Session, guild *discordgo.Guild, ch
 		statusCommand(session, channel.ID)
 		return
 	}
+
+	if strings.HasPrefix(messageContent, "!tick") {
+		tickCommand(session, channel.ID)
+		return
+	}
 }
 
 func helpCommand(session *discordgo.Session, channelID string) {
@@ -148,4 +153,30 @@ func statusCommand(session *discordgo.Session, channelID string) {
 		fmt.Println(err)
 		return
 	}
+}
+
+func tickCommand(session *discordgo.Session, channelID string) {
+	if activeChannels.isActive(channelID) == false {
+		_, err := session.ChannelMessageSend(channelID, nonActiveChannelMessage)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		return
+	}
+
+	gameSession, err := activeChannels.getGameSession(channelID)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	isNowNightTime := gameSession.toggleAndCheckIsNightTime()
+	if isNowNightTime {
+		// send notification, do nighttime things
+		return
+	}
+
+	// send notification, do daytime things
 }
